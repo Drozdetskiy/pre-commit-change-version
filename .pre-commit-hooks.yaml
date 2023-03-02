@@ -1,0 +1,9 @@
+- id: change-version
+  name: change-version
+  description: ''
+  entry: change_version
+  require_serial: true
+  language: python
+  additional_dependencies:
+    - gitpython
+    - pdm-bump
