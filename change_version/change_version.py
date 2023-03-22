@@ -19,6 +19,8 @@ def main() -> None:
             "pdm bump pre-release --pre beta", stdout=subprocess.PIPE, shell=True
         )
         result_message, *_ = p.communicate()
+        if isinstance(result_message, bytes):
+            result_message = result_message.decode()
 
         for line in result_message.split("\n"):
             print(line)
