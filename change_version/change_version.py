@@ -1,5 +1,4 @@
 import re
-import toml
 
 from git import Repo
 from semantic_version import Version as BaseVersion
@@ -13,7 +12,9 @@ class Version(BaseVersion):
                     major=self.major,
                     minor=self.minor,
                     patch=self.patch,
-                    prerelease=(self.prerelease[0], str(int(self.prerelease[1]) + 1)),
+                    prerelease=(
+                        self.prerelease[0], str(int(self.prerelease[1]) + 1)
+                    ),
                 )
             else:
                 raise Exception("Unsupported prerelease format")
@@ -26,7 +27,7 @@ class Version(BaseVersion):
         )
 
 
-VERSION_REGEXP = re.compile('version = "\\d+.\\d+.\\d+b\\d+"')
+VERSION_REGEXP = re.compile('version = "(\\d+.\\d+.\\d+)(-beta.\\d+)*"')
 
 
 def main() -> None:
@@ -38,11 +39,22 @@ def main() -> None:
         )
     )
     if not result:
-        with open("pyproject.toml", "wb") as f:
-            data = toml.load(f)
-            version = data["project"]["version"]
-            data["project"]["version"] = str(Version(version).next_prerelease())
-            toml.dump(data, f)
+        with open("pyproject.toml") as f:
+            lines = f.readlines()
+
+            for i in range(len(lines)):
+                line = lines[i]
+                result = VERSION_REGEXP.findall(line)
+
+                if result:
+                    new_version = Version("".join(result[0])).next_prerelease()
+                    lines[i] = f'version = "{new_version}"\n'
+                    break
+            else:
+                raise Exception("Version not found in pyproject.toml")
+
+        with open("pyproject.toml", "w") as f:
+            f.writelines(lines)
 
         raise SystemExit(
             "Please add bumped version to commit or "

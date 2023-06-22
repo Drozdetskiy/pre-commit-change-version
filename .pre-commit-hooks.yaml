@@ -6,4 +6,4 @@
   language: python
   additional_dependencies:
     - gitpython
-    - pdm-bump
+    - semantic-version==2.10.0
